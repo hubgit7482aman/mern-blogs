@@ -263,6 +263,30 @@ server.post("/google-auth", async (req, res) => {
     });
 });
 
+////////////////////////////////////blog area/////////////////////////////
+
+// getting blog data from database so that we can show trending blog, in our home page
+
+server.get("/latest-blogs", (req, res) => {
+  let maxLimit = 5;
+  // pupulate will select these key from user's  data structure and will store inside author (u can see in your database there will be user data structture has stored all info )
+  Blog.find({ draft: false })
+    .populate(
+      "author",
+      "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+    )
+    .sort({ publishedAt: -1 })
+    .select("blog_id title des banner activity tags publishedAt -_id")
+    .limit(maxLimit)
+    .then((blogs) => {
+      // data has came inside then means inside blogs variable
+      return res.status(200).json({ blogs });
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: err.message });
+    });
+});
+
 // make a route so that we can upload the blog(editor ,publish form data into database)
 // it is post request becase we will send data from the frontnd]
 // whenever we will get a request from create-blog then we will have req(request) then in response we will send res
@@ -295,11 +319,9 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
         .json({ error: "There must be some blog content to publish it" });
     }
     if (!tags.length || tags.length > 10) {
-      return res
-        .status(403)
-        .json({
-          error: "Provide tags in order to publish the blog, Maximum 10",
-        });
+      return res.status(403).json({
+        error: "Provide tags in order to publish the blog, Maximum 10",
+      });
     }
   }
 

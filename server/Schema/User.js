@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 let profile_imgs_name_list = ["Garfield", "Tinkerbell", "Annie", "Loki", "Cleo", "Angel", "Bob", "Mia", "Coco", "Gracie", "Bear", "Bella", "Abby", "Harley", "Cali", "Leo", "Luna", "Jack", "Felix", "Kiki"];
 let profile_imgs_collections_list = ["notionists-neutral", "adventurer-neutral", "fun-emoji"];
 
-const userSchema = mongoose.Schema({
+const userSchema =new mongoose.Schema({
 
     personal_info: {
         fullname: {
@@ -90,4 +90,4 @@ const userSchema = mongoose.Schema({
 
 })
 
-export default mongoose.model("user", userSchema);
+ export default mongoose.model("user", userSchema);

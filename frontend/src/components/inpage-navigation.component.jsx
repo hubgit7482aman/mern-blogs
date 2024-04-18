@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 const InPageNavigation = ({ routes, defaultHidden = [ ], defaultActiveIndex = 0, children }) => {                   // we want that in mediaum screen trending blog not appear right to Home
   let activeTabLineRef = useRef(); // when i will click the button then i will have need of hr(line) so that it can come below to current button
   let activeTabRef = useRef();
-
+   
   // to check which state is active
   let [inPageNavIndex, setInpageNavIndex] = useState(defaultActiveIndex); // i want default index is 0 (only 2 element in the array home,trendingblog)  // jo bhi button active rahegi uske niche line honi chahiye and uska color black hona chahiy
 
