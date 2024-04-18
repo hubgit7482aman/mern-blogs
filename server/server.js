@@ -270,20 +270,15 @@ server.post("/google-auth", async (req, res) => {
 
 // whenever you make a request to frontend then "varifyJWT" middleware will run before going to call back from backend , if everything goes well then we will call a function to backend
 server.post("/create-blog", VerifyJWT, (req, res) => {
-
-
   let authorId = req.user;
 
   let { title, des, banner, tags, content, draft } = req.body;
 
   if (!title.length) {
-    return res
-      .status(403)
-      .json({ error: " You must provide a title " });
+    return res.status(403).json({ error: " You must provide a title " });
   }
 
-  if(!draft){
-
+  if (!draft) {
     if (!des.length || des.length > 200) {
       return res.status(403).json({
         error: "you must provide blog description under 200 characters",
@@ -302,7 +297,9 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
     if (!tags.length || tags.length > 10) {
       return res
         .status(403)
-        .json({ error: "Provide tags in order to publish the blog, Maximum 10" });
+        .json({
+          error: "Provide tags in order to publish the blog, Maximum 10",
+        });
     }
   }
 
