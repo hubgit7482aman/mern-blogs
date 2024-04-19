@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 // our server is running on another port than frontend
 // so we are adding cors , so that server can take request from any port
-import cors from "cors";
+import cors from "cors";          
 import admin from "firebase-admin";
 import User from "./Schema/User.js";
 import { getAuth } from "firebase-admin/auth";
@@ -263,7 +263,22 @@ server.post("/google-auth", async (req, res) => {
     });
 });
 
-////////////////////////////////////blog area/////////////////////////////
+//////////////////////////////////// home page blog content area//////////////////////////////////////
+
+// for trending blog
+server.get("/trending-blogs", (req, res) => {
+   Blog.find({ draft: false})
+   .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+   .sort({"activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1})
+   .select("blog_id title publishedAt -_id")
+   .limit(5)
+   .then(blogs => {
+      return res.status(200).json({ blogs })
+   })
+   .catch(err => {
+    return res.status(500).json({error: err.message})
+   })
+})
 
 // getting blog data from database so that we can show trending blog, in our home page
 
