@@ -325,9 +325,14 @@ server.post("/all-latest-blogs-count", (req, res) => {
 // getting data from server according to search
 
 server.post("/search-blogs", (req, res) => {
-  let { tag, page } = req.body; // ham blog ko tag ki help se filter karenge
+  let { tag, query, page } = req.body; // ham blog ko tag ki help se filter karenge
 
-  let findQuery = { tags: tag, draft: false };
+  let findQuery;
+  if(tag){
+    findQuery = { tags: tag, draft: false };
+  }else if(query){
+    findQuery = { draft: false, title: new RegExp(query, 'i') }     // we want to check if query is included in any of the blog's title or not
+  }
   let maxLimit = 2;
   Blog.find(findQuery)
     .populate(
@@ -348,8 +353,13 @@ server.post("/search-blogs", (req, res) => {
 });
 
 server.post("/search-blogs-count", (req, res) => {
-  let { tag } = req.body;
-  let findQuery = { tags: tag, draft: false };
+  let { tag, query } = req.body;
+  let findQuery;
+  if(tag){
+    findQuery = { tags: tag, draft: false };
+  }else if(query){
+    findQuery = { draft: false, title: new RegExp(query, 'i') }     // we want to check if query is included in any of the blog's title or not
+  }
   Blog.countDocuments(findQuery)
   .then(count => {
     return res.status(200).json({ totalDocs: count })
