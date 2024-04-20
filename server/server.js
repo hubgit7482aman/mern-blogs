@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 // our server is running on another port than frontend
 // so we are adding cors , so that server can take request from any port
-import cors from "cors";          
+import cors from "cors";
 import admin from "firebase-admin";
 import User from "./Schema/User.js";
 import { getAuth } from "firebase-admin/auth";
@@ -267,22 +267,30 @@ server.post("/google-auth", async (req, res) => {
 
 // for trending blog
 server.get("/trending-blogs", (req, res) => {
-   Blog.find({ draft: false})
-   .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
-   .sort({"activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1})
-   .select("blog_id title publishedAt -_id")
-   .limit(5)
-   .then(blogs => {
-      return res.status(200).json({ blogs })
-   })
-   .catch(err => {
-    return res.status(500).json({error: err.message})
-   })
-})
+  Blog.find({ draft: false })
+    .populate(
+      "author",
+      "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+    )
+    .sort({
+      "activity.total_read": -1,
+      "activity.total_likes": -1,
+      publishedAt: -1,
+    })
+    .select("blog_id title publishedAt -_id")
+    .limit(5)
+    .then((blogs) => {
+      return res.status(200).json({ blogs });
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: err.message });
+    });
+});
 
 // getting blog data from database so that we can show trending blog, in our home page
 
-server.get("/latest-blogs", (req, res) => {
+server.post("/latest-blogs", (req, res) => {
+  let { page } = req.body;
   let maxLimit = 5;
   // pupulate will select these key from user's  data structure and will store inside author (u can see in your database there will be user data structture has stored all info )
   Blog.find({ draft: false })
@@ -292,6 +300,7 @@ server.get("/latest-blogs", (req, res) => {
     )
     .sort({ publishedAt: -1 })
     .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then((blogs) => {
       // data has came inside then means inside blogs variable
@@ -301,6 +310,56 @@ server.get("/latest-blogs", (req, res) => {
       return res.status(500).json({ error: err.message });
     });
 });
+
+server.post("/all-latest-blogs-count", (req, res) => {
+  Blog.countDocuments({ draft: false })
+    .then((count) => {
+      return res.status(200).json({ totalDocs: count });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+// getting data from server according to search
+
+server.post("/search-blogs", (req, res) => {
+  let { tag, page } = req.body; // ham blog ko tag ki help se filter karenge
+
+  let findQuery = { tags: tag, draft: false };
+  let maxLimit = 2;
+  Blog.find(findQuery)
+    .populate(
+      "author",
+      "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+    )
+    .sort({ publishedAt: -1 })
+    .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page-1)*maxLimit)
+    .limit(maxLimit)
+    .then((blogs) => {
+      // data has came inside then means inside blogs variable
+      return res.status(200).json({ blogs });
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+server.post("/search-blogs-count", (req, res) => {
+  let { tag } = req.body;
+  let findQuery = { tags: tag, draft: false };
+  Blog.countDocuments(findQuery)
+  .then(count => {
+    return res.status(200).json({ totalDocs: count })
+  })
+  .catch(err => {
+    console.log(err.message);
+    return res.status(500).json({ error: err.message})
+  })
+
+})
 
 // make a route so that we can upload the blog(editor ,publish form data into database)
 // it is post request becase we will send data from the frontnd]
