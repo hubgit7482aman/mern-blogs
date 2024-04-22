@@ -328,10 +328,10 @@ server.post("/search-blogs", (req, res) => {
   let { tag, query, page } = req.body; // ham blog ko tag ki help se filter karenge
 
   let findQuery;
-  if(tag){
+  if (tag) {
     findQuery = { tags: tag, draft: false };
-  }else if(query){
-    findQuery = { draft: false, title: new RegExp(query, 'i') }     // we want to check if query is included in any of the blog's title or not
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, "i") }; // we want to check if query is included in any of the blog's title or not
   }
   let maxLimit = 2;
   Blog.find(findQuery)
@@ -341,7 +341,7 @@ server.post("/search-blogs", (req, res) => {
     )
     .sort({ publishedAt: -1 })
     .select("blog_id title des banner activity tags publishedAt -_id")
-    .skip((page-1)*maxLimit)
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then((blogs) => {
       // data has came inside then means inside blogs variable
@@ -355,20 +355,48 @@ server.post("/search-blogs", (req, res) => {
 server.post("/search-blogs-count", (req, res) => {
   let { tag, query } = req.body;
   let findQuery;
-  if(tag){
+  if (tag) {
     findQuery = { tags: tag, draft: false };
-  }else if(query){
-    findQuery = { draft: false, title: new RegExp(query, 'i') }     // we want to check if query is included in any of the blog's title or not
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, "i") }; // we want to check if query is included in any of the blog's title or not
   }
   Blog.countDocuments(findQuery)
-  .then(count => {
-    return res.status(200).json({ totalDocs: count })
+    .then((count) => {
+      return res.status(200).json({ totalDocs: count });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+
+server.post("/search-users", (req, res) => {
+  let { query } = req.body;
+  User.find({ "personal_info.username": new RegExp(query, 'i') })
+  .limit(50)
+  .select("personal_info.fullname personal_info.username personal_info.profile_img -_id")
+  .then(users => {
+    return res.status(200).json({ users })
   })
   .catch(err => {
-    console.log(err.message);
-    return res.status(500).json({ error: err.message})
+    return res.status(500).json({ error: err.message })
   })
+})
 
+// request for opening user profile by another user
+
+server.post("/get-profile",(req, res) => {
+   let { username } = req.body;
+
+   User.findOne({ "personal_info.username": username })
+   .select("-personal_info.password -google_auth -updatedAt -blogs")
+   .then(user => {
+     return res.status(200).json(user)
+   })
+   .catch(err => {
+     return res.status(500).json({ error: err.message })
+   })
 })
 
 // make a route so that we can upload the blog(editor ,publish form data into database)
