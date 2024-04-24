@@ -325,17 +325,17 @@ server.post("/all-latest-blogs-count", (req, res) => {
 // getting data from server according to search
 
 server.post("/search-blogs", (req, res) => {
-  let { tag, query, author, page } = req.body; // ham blog ko tag ki help se filter karenge
+  let { tag, query, author, page, limit, eliminate_blog } = req.body; // ham blog ko tag ki help se filter karenge
 
   let findQuery;
   if (tag) {
-    findQuery = { tags: tag, draft: false };
+    findQuery = { tags: tag, draft: false, blog_id: { $ne: eliminate_blog } };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, "i") }; // we want to check if query is included in any of the blog's title or not
   } else if(author){
        findQuery = { author, draft: false}
   }
-  let maxLimit = 2;
+  let maxLimit = limit ? limit : 2;
   Blog.find(findQuery)
     .populate(
       "author",
@@ -484,6 +484,29 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
       return res.status(500).json({ error: err.message });
     });
 });
+
+// when you click on any blog on home page or on trending page this request will send to server
+
+server.post("/get-blog", (req, res) => {
+  let { blog_id } = req.body;
+
+  let incrementVal = 1;
+  Blog.findOneAndUpdate({ blog_id }, { $inc : { "activity.total_reads": incrementVal } }) // when anybody will click on any blog then total read of that blog will increment by 1
+  .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+  .select("title des content banner activity publishedAt blog_id tags")
+  .then(blog => {
+
+    // we want when anybody open someone's account then account read should be update , check userschema 
+    User.findByIdAndUpdate({ "personal_info.username": blog.author.personal_info.username }, {
+      $inc : { "account_info.total_reads": incrementVal }
+    })
+     return res.status(200).json({ blog });
+  })
+  .catch(err => {
+    return res.status(500).json({ error: err.message });
+  })
+})
+
 
 server.listen(PORT, () => {
   console.log("server is running at port" + PORT);
