@@ -498,7 +498,6 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
 // when you click on any blog on home page or on trending page this request will send to server
 
 server.post("/get-blog", (req, res) => {
-<<<<<<< HEAD
   let { blog_id, draft, mode } = req.body;
 
   let incrementVal = mode !== 'edit' ? 1 : 0;
@@ -534,26 +533,6 @@ server.post("/get-blog", (req, res) => {
       res.status(500).json({ error: err.message });
     });
 });
-=======
-  let { blog_id } = req.body;
-
-  let incrementVal = 1;
-  Blog.findOneAndUpdate({ blog_id }, { $inc : { "activity.total_reads": incrementVal } }) // when anybody will click on any blog then total read of that blog will increment by 1
-  .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
-  .select("title des content banner activity publishedAt blog_id tags")
-  .then(blog => {
-
-    // we want when anybody open someone's account then account read should be update , check userschema 
-    User.findByIdAndUpdate({ "personal_info.username": blog.author.personal_info.username }, {
-      $inc : { "account_info.total_reads": incrementVal }
-    })
-     return res.status(200).json({ blog });
-  })
-  .catch(err => {
-    return res.status(500).json({ error: err.message });
-  })
-})
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
 
 
 server.listen(PORT, () => {

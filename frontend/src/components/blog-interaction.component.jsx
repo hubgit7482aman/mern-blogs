@@ -2,16 +2,10 @@ import { useContext } from "react";
 import { Blogcontext } from "../pages/blog.page";
 import { Link } from "react-router-dom";
 import { UserContext } from "../App";
-<<<<<<< HEAD
 import { Toaster, toast } from "react-hot-toast";
 
 const BlogInteraction = () => {
   let { blog,
-=======
-
-const BlogInteraction = () => {
-  let {
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
     blog: {
       title,
       blog_id,
@@ -21,7 +15,6 @@ const BlogInteraction = () => {
         personal_info: { username: author_username },
       },
     },
-<<<<<<< HEAD
     setBlog, islikedByUser, setLikedByUser
   } = useContext(Blogcontext);
 
@@ -48,20 +41,6 @@ const BlogInteraction = () => {
            className={"w-10 h-10 rounded-full flex items-center justify-center " + ( islikedByUser ? "bg-red/20 text-red" : "bg-grey/80" )}>
 
             <i className={"fi " + ( islikedByUser ? "fi-sr-heart" : "fi-rr-heart" )}></i>
-=======
-    setBlog,
-  } = useContext(Blogcontext);
-
-  let { userAuth: { username } } = useContext(UserContext);            // through this we will have login username if login user name is same as jisne blog post kiya uska username (username is uniqe in this project) then voh blog ko edit kar sakta hai 
-
-  return (
-    <>
-      <hr className="border-grey my-2" />
-      <div className="flex gap-6 justify-between">
-        <div className="flex gap-3 items-center">
-          <button className="w-10 h-10 rounded-full flex items-center justify-center bg-grey/80">
-            <i className="fi fi-rr-heart"></i>
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
           </button>
           <p className="text-xl text-dark-grey">{total_likes}</p>
 

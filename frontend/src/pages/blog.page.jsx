@@ -5,10 +5,7 @@ import Loader from "../components/loader.component";
 import { getDay } from "../common/date";
 import BlogInteraction from "../components/blog-interaction.component";
 import BlogPostCard from "../components/blog-post.component";
-<<<<<<< HEAD
 import BlogContent from "../components/blog-content.component";
-=======
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
 
 export const blogStructure = {
     title: '',
@@ -27,7 +24,6 @@ const BlogPage = () => {
     let [ blog, setBlog ] = useState(blogStructure);
     let [ similarBlogs, setSimilarBlogs ] = useState(null);
     let [loading, setLoading ] = useState(true);
-<<<<<<< HEAD
     let [ islikedByUser, setLikedByUser ] = useState(false);
     let { title, content, banner, author: { personal_info: { fullname, username: author_username, profile_img } }, publishedAt } = blog;
     
@@ -38,24 +34,12 @@ const BlogPage = () => {
         }).then(( { data: { blog } }) => {
 
             setBlog(blog);
-=======
-
-    let { title, content, banner, author: { personal_info: { fullname, username: author_username, profile_img } }, publishedAt } = blog;
-    
-    const fetchBlog = () => {
-        axios.post("http://localhost:3000/get-blog", { blog_id
-        }).then(( { data: { blog } }) => {
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
             axios.post("http://localhost:3000/search-blogs", { tag: blog.tags[0], limit: 6, eleminate_blog: blog_id})
             .then(({ data }) => {
                 setSimilarBlogs(data.blogs);
             })
             
-<<<<<<< HEAD
             
-=======
-            setBlog(blog);
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
             setLoading(false);
         })
         .catch(err => {
@@ -79,11 +63,7 @@ const BlogPage = () => {
         {
             loading ? <Loader />
             :
-<<<<<<< HEAD
             <Blogcontext.Provider value={{ blog, setBlog, islikedByUser, setLikedByUser }}>
-=======
-            <Blogcontext.Provider value={{ blog, setBlog }}>
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
             <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
                     <img src={banner} className="aspect-video" />
                     <div className="mt-12">
@@ -105,7 +85,6 @@ const BlogPage = () => {
                     </div>
 
                     <BlogInteraction />
-<<<<<<< HEAD
 
                     <div className="my-12 font-gelasio blog-page-content">
                         {
@@ -117,8 +96,6 @@ const BlogPage = () => {
                         }
 
                     </div>
-=======
->>>>>>> c213172a68b1d5cefef852094f4f765e28be619c
                     <BlogInteraction />
                     {
                         similarBlogs != null && similarBlogs.length ?
