@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../imgs/logo.png";
 import defaultBanner from "../imgs/blog banner.png";
 import { uploadImage } from "../common/aws";
@@ -19,6 +19,9 @@ const BlogEditor = () => {
 
   let { userAuth: { access_token }} = useContext(UserContext);
 
+  let { blog_id } =useParams();
+
+
  let navigate = useNavigate(); 
 
   //  useeffect will run only once after the rendering , but if you pass a variable in [] then it will run whenever thatvariable will.chan
@@ -27,7 +30,7 @@ const BlogEditor = () => {
     if(!textEditor.isReady){
       setTextEditor( new EditorJS({
         holderId: "textEditor",
-        data: content,
+        data: Array.isArray(content) ? content[0] : content,
         tools: tools,
         placeholder: "Write an awesome blog"
     }))
@@ -132,7 +135,7 @@ const BlogEditor = () => {
         }
          
           axios.post("http://localhost:3000" + "/create-blog",
-          blogObj,{
+          { ...blogObj, id: blog_id },{
             headers: {
                 'Authorization': `Bearer ${access_token}`
             }

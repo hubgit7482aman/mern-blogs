@@ -325,15 +325,17 @@ server.post("/all-latest-blogs-count", (req, res) => {
 // getting data from server according to search
 
 server.post("/search-blogs", (req, res) => {
-  let { tag, query, page } = req.body; // ham blog ko tag ki help se filter karenge
+  let { tag, query, author, page, limit, eliminate_blog } = req.body; // ham blog ko tag ki help se filter karenge
 
   let findQuery;
   if (tag) {
-    findQuery = { tags: tag, draft: false };
+    findQuery = { tags: tag, draft: false, blog_id: { $ne: eliminate_blog } };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, "i") }; // we want to check if query is included in any of the blog's title or not
+  } else if(author){
+       findQuery = { author, draft: false}
   }
-  let maxLimit = 2;
+  let maxLimit = limit ? limit : 2;
   Blog.find(findQuery)
     .populate(
       "author",
@@ -353,13 +355,15 @@ server.post("/search-blogs", (req, res) => {
 });
 
 server.post("/search-blogs-count", (req, res) => {
-  let { tag, query } = req.body;
+  let { tag, author, query } = req.body;
   let findQuery;
   if (tag) {
     findQuery = { tags: tag, draft: false };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, "i") }; // we want to check if query is included in any of the blog's title or not
-  }
+  } else if(author){
+    findQuery = { author, draft: false}
+}
   Blog.countDocuments(findQuery)
     .then((count) => {
       return res.status(200).json({ totalDocs: count });
@@ -408,7 +412,7 @@ server.post("/get-profile",(req, res) => {
 server.post("/create-blog", VerifyJWT, (req, res) => {
   let authorId = req.user;
 
-  let { title, des, banner, tags, content, draft } = req.body;
+  let { title, des, banner, tags, content, draft, id  } = req.body;
 
   if (!title.length) {
     return res.status(403).json({ error: " You must provide a title " });
@@ -439,12 +443,21 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
 
   // convert all the text in lowercase
   tags = tags.map((tag) => tag.toLowerCase());
-  let blog_id =
+  let blog_id = id || 
     title
       .replace(/[^a-zA-Z0-9]/g, " ")
       .replace(/\s+/g, "-")
       .trim() + nanoid(); // nanoid for generating random id
 
+  if(id){
+       Blog.findOneAndUpdate({ blog_id }, { title, des, banner, content, tags, draft: draft ? draft : false })
+       .then(() => {
+         return res.status(200).json({id: blog_id});
+       })
+       .catch(err => {
+        return res.status(500).json({error: err.message});
+       })
+  } else{
   let blog = new Blog({
     title,
     des,
@@ -479,7 +492,48 @@ server.post("/create-blog", VerifyJWT, (req, res) => {
     .catch((err) => {
       return res.status(500).json({ error: err.message });
     });
+  }
 });
+
+// when you click on any blog on home page or on trending page this request will send to server
+
+server.post("/get-blog", (req, res) => {
+  let { blog_id, draft, mode } = req.body;
+
+  let incrementVal = mode !== 'edit' ? 1 : 0;
+
+  Blog.findOneAndUpdate(
+    { blog_id },
+    { $inc: { "activity.total_reads": incrementVal } },
+    { new: true }
+  )
+    .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+    .select("title des content banner activity publishedAt blog_id tags")
+    .then(blog => {
+      if (!blog) {
+        return res.status(404).json({ error: 'Blog not found' });
+      }
+
+      if (blog.draft && !draft) {
+        return res.status(403).json({ error: 'You cannot access draft blogs' });
+      }
+
+      User.findOneAndUpdate(
+        { "personal_info.username": blog.author.personal_info.username },
+        { $inc: { "account_info.total_reads": incrementVal } }
+      )
+        .then(() => {
+          res.status(200).json({ blog });
+        })
+        .catch(err => {
+          res.status(500).json({ error: err.message });
+        });
+    })
+    .catch(err => {
+      res.status(500).json({ error: err.message });
+    });
+});
+
 
 server.listen(PORT, () => {
   console.log("server is running at port" + PORT);
